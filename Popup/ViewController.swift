@@ -9,9 +9,9 @@
 import Cocoa
 import Foundation
 import JavaScriptCore
+import Highlightr
 
 class ViewController: NSViewController {
-    @IBOutlet var codeView: NSTextView!
     @IBOutlet weak var runCodeButton: NSButton!
     @IBOutlet var outputView: NSTextView!
     var codeIsRunning: Bool = false
@@ -20,13 +20,36 @@ class ViewController: NSViewController {
     var dataObserver : NSObjectProtocol? = nil
     var errorObserver : NSObjectProtocol? = nil
     @IBOutlet weak var statusText: NSTextField!
+
+    var codeView : NSTextView!
+    @IBOutlet weak var clipView: NSClipView!
+    let textStorage = CodeAttributedString()
     
     override func viewDidLoad() {
         super.viewDidLoad();
         codeView.lnv_setUpLineNumberView();
+        
+        textStorage.language = "javascript"
+        textStorage.highlightr.setTheme(to: "github")
+        textStorage.highlightr.theme.codeFont = NSFont(name: "Courier", size: 14)
+        
+        let layoutManager = NSLayoutManager()
+        textStorage.addLayoutManager(layoutManager)
+        
+        let textContainer = NSTextContainer(size: NSSize(width: (clipView?.bounds.width)!, height: CGFloat.maximum(1000, 1000)))
+        layoutManager.addTextContainer(textContainer)
+        
+        codeView = NSTextView(frame: (clipView?.bounds)!, textContainer: textContainer)
+        codeView.autoresizingMask = [.width,.height]
+        codeView.translatesAutoresizingMaskIntoConstraints = true
+        
+        codeView.backgroundColor = (textStorage.highlightr.theme.themeBackgroundColor)!
+        codeView.insertionPointColor = NSColor.black
         codeView.isAutomaticQuoteSubstitutionEnabled = false
-        codeView.enabledTextCheckingTypes = 0;
-	}
+        codeView.enabledTextCheckingTypes = 0
+        
+        clipView?.addSubview(codeView)
+    }
     
     func runInJsCore(cmd: String) -> (output: String?, error: String){
         let context = JSContext()!
@@ -40,7 +63,7 @@ class ViewController: NSViewController {
     }
     
     func captureStandardOutputAndRouteToTextView(_ task:Process) {
-        var outputPipe = Pipe()
+        let outputPipe = Pipe()
         task.standardOutput = outputPipe
         let errpipe = Pipe()
         task.standardError = errpipe
@@ -121,6 +144,9 @@ class ViewController: NSViewController {
         updateStatus(buttonText: "Stop",statusText: "Evaluating...")
         var code: String = "";
         code =  codeView.textStorage?.string ?? "";
+        
+        print(code)
+        
         let weakSelf = self
         DispatchQueue.global().async {
           weakSelf.runCommand(view:weakSelf.outputView,cmd: "/usr/local/bin/node", args: "-e",code);
