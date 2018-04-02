@@ -21,34 +21,22 @@ class ViewController: NSViewController {
     var errorObserver : NSObjectProtocol? = nil
     @IBOutlet weak var statusText: NSTextField!
 
-    var codeView : NSTextView!
+    @IBOutlet weak var codeView : NSTextView!
     @IBOutlet weak var clipView: NSClipView!
     let textStorage = CodeAttributedString()
     
     override func viewDidLoad() {
         super.viewDidLoad();
-        codeView.lnv_setUpLineNumberView();
-        
+        // Highlightr
         textStorage.language = "javascript"
         textStorage.highlightr.setTheme(to: "github")
         textStorage.highlightr.theme.codeFont = NSFont(name: "Courier", size: 14)
-        
-        let layoutManager = NSLayoutManager()
-        textStorage.addLayoutManager(layoutManager)
-        
-        let textContainer = NSTextContainer(size: NSSize(width: (clipView?.bounds.width)!, height: CGFloat.maximum(1000, 1000)))
-        layoutManager.addTextContainer(textContainer)
-        
-        codeView = NSTextView(frame: (clipView?.bounds)!, textContainer: textContainer)
-        codeView.autoresizingMask = [.width,.height]
-        codeView.translatesAutoresizingMaskIntoConstraints = true
-        
+        textStorage.addLayoutManager(codeView.layoutManager!)
         codeView.backgroundColor = (textStorage.highlightr.theme.themeBackgroundColor)!
         codeView.insertionPointColor = NSColor.black
         codeView.isAutomaticQuoteSubstitutionEnabled = false
         codeView.enabledTextCheckingTypes = 0
-        
-        clipView?.addSubview(codeView)
+        codeView.lnv_setUpLineNumberView();
     }
     
     func runInJsCore(cmd: String) -> (output: String?, error: String){
