@@ -1,0 +1,12 @@
+PODS:
+  - Highlightr (2.0.0)
+
+DEPENDENCIES:
+  - Highlightr
+
+SPEC CHECKSUMS:
+  Highlightr: e68a91ed9067ef0a787b920dd9becbd9935c2b79
+
+PODFILE CHECKSUM: 15139e38aac3dd7d4f824d7595274549bcea0925
+
+COCOAPODS: 1.4.0
