@@ -1,5 +1,5 @@
 # nodeScratchpad
-Evaluate Nodejs Code Snippets From Menubar! :computer:
+Evaluate Nodejs Code Snippets From Menubar! :computer: Now with syntax highlighting! :tada:
 
 ![Screenshot](https://github.com/vsaravind007/nodeScratchpad/blob/master/images/scratchpad.gif?raw=true)
 
@@ -7,5 +7,4 @@ Evaluate Nodejs Code Snippets From Menubar! :computer:
 
  - Fix random observer issues
  - Support project directory
- - Add Syntax highlighting
  - Configuration management
