@@ -1,5 +1,4 @@
 # nodeScratchpad
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
 Evaluate Nodejs Code Snippets From Menubar! :computer: Now with syntax highlighting! :tada:
 
 ![Screenshot](https://github.com/vsaravind007/nodeScratchpad/blob/master/images/scratchpad.gif?raw=true)
