@@ -14,8 +14,8 @@ Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore -->
-| [<img src="https://avatars0.githubusercontent.com/u/2555067?v=4" width="100px;"/><br /><sub><b>Arjun Komath</b></sub>](http://techulus.in)<br />[💻](https://github.com/vsaravind007/nodeScratchpad/commits?author=arjunkomath "Code") |
-| :---: |
+| [<img src="https://avatars0.githubusercontent.com/u/2555067?v=4" width="100px;"/><br /><sub><b>Arjun Komath</b></sub>](http://techulus.in)<br />[💻](https://github.com/vsaravind007/nodeScratchpad/commits?author=arjunkomath "Code") | [<img src="https://avatars3.githubusercontent.com/u/15260297?v=4" width="100px;"/><br /><sub><b>sudeepngeorge</b></sub>](https://github.com/sudeepngeorge)<br />[💻](https://github.com/vsaravind007/nodeScratchpad/commits?author=sudeepngeorge "Code") |
+| :---: | :---: |
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
