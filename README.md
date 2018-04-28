@@ -5,7 +5,6 @@ Evaluate Nodejs Code Snippets From Menubar! :computer: Now with syntax highlight
 
 ## Roadmap
 
- - Fix random observer issues
  - Support project directory
  - Configuration management
 
