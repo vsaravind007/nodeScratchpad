@@ -14,20 +14,20 @@ import Highlightr
 class ViewController: NSViewController {
     @IBOutlet weak var runCodeButton: NSButton!
     @IBOutlet var outputView: NSTextView!
-    var codeIsRunning: Bool = false
-    var currentTask: Process!
-    let outpipe = Pipe()
-    var dataObserver : NSObjectProtocol? = nil
-    var errorObserver : NSObjectProtocol? = nil
     @IBOutlet weak var statusText: NSTextField!
-
     @IBOutlet weak var codeView : NSTextView!
     @IBOutlet weak var clipView: NSClipView!
+    
+    var codeIsRunning: Bool = false
+    var currentTask: Process!
+    var dataObserver : NSObjectProtocol? = nil
+    var outputPipe:Pipe? = nil
+    var errpipe:Pipe? = nil
     let textStorage = CodeAttributedString()
     
     override func viewDidLoad() {
         super.viewDidLoad();
-        // Highlightr
+        // Highlighter
         textStorage.language = "javascript"
         textStorage.highlightr.setTheme(to: "github")
         textStorage.highlightr.theme.codeFont = NSFont(name: "Courier", size: 14)
@@ -51,46 +51,44 @@ class ViewController: NSViewController {
     }
     
     func captureStandardOutputAndRouteToTextView(_ task:Process) {
-        let outputPipe = Pipe()
+        outputPipe = Pipe()
         task.standardOutput = outputPipe
-        let errpipe = Pipe()
+        errpipe = Pipe()
         task.standardError = errpipe
-        outputPipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
-        errpipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
+        outputPipe?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+        dataObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSFileHandleDataAvailable, object: outputPipe?.fileHandleForReading , queue: nil) {
+            notification in
+            if let data = self.outputPipe?.fileHandleForReading.availableData {
+                DispatchQueue.main.async {
+                    if let outputString = NSString(data: data, encoding: String.Encoding.utf8.rawValue) {
+                        let previousOutput = self.outputView.string
+                        let nextOutput = previousOutput + "\n" + (outputString as String)
+                        if (!nextOutput.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty) {
+                            self.outputView.string = nextOutput
+                            print("NEXT OP" +  self.outputView.string)
+                            let range = NSRange(location:nextOutput.count,length:0)
+                            self.outputView.scrollRangeToVisible(range)
+                        }
+                    }
+                }
+                self.outputPipe?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+            }
+        }
+    }
+    
+    private func stringFromFileAndClose(file: FileHandle?) -> String? {
+        if let data = file?.readDataToEndOfFile() {
+            file?.closeFile()
+            let output = String(data: data, encoding: String.Encoding.utf8)
+            return output
+        }
+        return nil
+    }
+    
+    func removeObservers() {
         if (dataObserver != nil) {
-            NotificationCenter.default.removeObserver(dataObserver)
+            NotificationCenter.default.removeObserver(dataObserver!)
         }
-        dataObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSFileHandleDataAvailable, object: outputPipe.fileHandleForReading , queue: nil) {
-            notification in
-            let output = outputPipe.fileHandleForReading.availableData
-            let outputString = String(data: output, encoding: String.Encoding.utf8) ?? ""
-            DispatchQueue.main.async(execute: {
-                let previousOutput = self.outputView.string ?? ""
-                let nextOutput = previousOutput + "\n" + outputString
-                self.outputView.string = nextOutput
-                
-                let range = NSRange(location:nextOutput.characters.count,length:0)
-                self.outputView.scrollRangeToVisible(range)
-                
-            })
-            outputPipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
-        }
-        
-        if (errorObserver != nil) {
-            NotificationCenter.default.removeObserver(errorObserver)
-        }
-        errorObserver = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSFileHandleDataAvailable, object: errpipe.fileHandleForReading , queue: nil) {
-            notification in
-            let error = errpipe.fileHandleForReading.availableData
-            let errorString = String(data: error, encoding: String.Encoding.utf8) ?? ""
-            DispatchQueue.main.async(execute: {
-                self.outputView.string = errorString
-                let range = NSRange(location:errorString.characters.count,length:0)
-                self.outputView.scrollRangeToVisible(range)
-            })
-            errpipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
-        }
-        
     }
     
     func updateStatus (buttonText: String, statusText: String){
@@ -100,46 +98,59 @@ class ViewController: NSViewController {
         })
     }
     
-    func runCommand(view: NSTextView,cmd : String, args : String...) -> Void {
-        if(self.codeIsRunning){
-            self.currentTask.terminate();
-            updateStatus(buttonText: "Run",statusText: "Idle");
-            self.codeIsRunning = false
-            return
-        }
-        
-        var task = Process()
-        self.currentTask = task;
-        task.launchPath = cmd
-        task.arguments = args
+    func runCommand(view: NSTextView,cmd : String, args : String...) {
+        let taskQueue = DispatchQueue.global(qos: DispatchQoS.QoSClass.background)
+        //2.
+        taskQueue.async {
+            if(self.codeIsRunning){
+                self.currentTask.terminate();
+                self.updateStatus(buttonText: "Run",statusText: "Idle");
+                self.codeIsRunning = false
+                print("runCommand -async -return ")
 
-        captureStandardOutputAndRouteToTextView(task)
-        self.codeIsRunning = true;
-        task.launch()
-        task.waitUntilExit()
-        self.codeIsRunning = false;
-        let status = task.terminationStatus
-        updateStatus(buttonText: "Run",statusText: "Idle");
-        return
+                return
+            }
+            let task = Process()
+            self.currentTask = task;
+            task.qualityOfService = QualityOfService.userInteractive
+            task.launchPath = cmd
+            task.arguments = args
+            self.captureStandardOutputAndRouteToTextView(task)
+            self.codeIsRunning = true;
+            task.launch()
+            task.waitUntilExit()
+            let errorFile = self.errpipe?.fileHandleForReading
+            if let errorString = self.stringFromFileAndClose(file: errorFile) {
+                DispatchQueue.main.async(execute: {
+                    //Check if error string is empty
+                    //By default, every Process task returns and empty error string.
+                    if !errorString.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty {
+                        self.outputView.string = errorString
+                        print(errorString)
+                        let range = NSRange(location:errorString.count,length:0)
+                        self.outputView.scrollRangeToVisible(range)
+                    }
+                })
+                
+            }
+            self.codeIsRunning = false;
+            self.updateStatus(buttonText: "Run",statusText: "Idle");
+        }
     }
     
     @IBAction func closeButtonAction(_ sender: NSButton) {
         NSApp.terminate(self)
     }
     
-    @IBAction func runCode(_ sender: NSButton){
-        self.outputView.string = "";
-        updateStatus(buttonText: "Stop",statusText: "Evaluating...")
-        var code: String = "";
-        code =  codeView.textStorage?.string ?? "";
-        
-        print(code)
-        
-        let weakSelf = self
-        DispatchQueue.global().async {
-          weakSelf.runCommand(view:weakSelf.outputView,cmd: "/usr/local/bin/node", args: "-e",code);
+    @IBAction func runCode(_ sender: NSButton) {
+        DispatchQueue.main.async {
+            self.outputView.string = "";
+            print("output set to empty string")
+            self.updateStatus(buttonText: "Stop",statusText: "Evaluating...")
+            var code: String = "";
+            code =  self.codeView.textStorage?.string ?? "";
+            self.runCommand(view:self.outputView,cmd: "/usr/local/bin/node", args: "-e",code);
         }
-    
     }
     
 }
