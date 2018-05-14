@@ -137,6 +137,11 @@ class ViewController: NSViewController {
             self.updateStatus(buttonText: "Run",statusText: "Idle");
         }
     }
+    @IBAction func openGit(_ sender: Any) {
+        if let url = URL.init(string: "https://github.com/vsaravind007/nodeScratchpad") {
+            NSWorkspace.shared.open(url);
+        }
+    }
     
     @IBAction func closeButtonAction(_ sender: NSButton) {
         NSApp.terminate(self)
