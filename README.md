@@ -1,12 +1,27 @@
+
 # nodeScratchpad
 Evaluate Nodejs Code Snippets From Menubar! :computer: Now with syntax highlighting! :tada:
 
 ![Screenshot](https://github.com/vsaravind007/nodeScratchpad/blob/master/images/scratchpad.gif?raw=true)
 
+## Installation
+
+- Make sure you have Nodejs installed & is added to path
+- Download the latest DMG from the [releases page](https://github.com/vsaravind007/nodeScratchpad/releases)
+- Mount the DMG & drag nodeScratchpad.app to your Applications Folder
+- Profit!
+
+You might get a warning saying the app is from an unidentified developer, you probably know how to fix it, else GIYF! :smile:
+
+## Issues
+You can create issues on the github project repo & they'll be addressed. Please make sure you give us the maximum possible information, so that we can fix up issues quickly.
+
 ## Roadmap
 
+ - Keep the project as simple as possible!
  - Support project directory
  - Configuration management
+ - Inspect options
 
 ## Contributors
 
