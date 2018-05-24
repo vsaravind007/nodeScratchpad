@@ -104,7 +104,7 @@ class ViewController: NSViewController {
         taskQueue.async {
             if(self.codeIsRunning){
                 self.currentTask.terminate();
-                self.updateStatus(buttonText: "Run",statusText: "Idle");
+                self.updateStatus(buttonText: "Run (⌘+R)",statusText: "Idle");
                 self.codeIsRunning = false
                 print("runCommand -async -return ")
 
@@ -134,7 +134,7 @@ class ViewController: NSViewController {
                 
             }
             self.codeIsRunning = false;
-            self.updateStatus(buttonText: "Run",statusText: "Idle");
+            self.updateStatus(buttonText: "Run (⌘+R)",statusText: "Idle");
         }
     }
     @IBAction func openGit(_ sender: Any) {
